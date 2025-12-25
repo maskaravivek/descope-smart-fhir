@@ -25,7 +25,7 @@
     </style>
 
     <script>
-        // SMART on FHIR launch sequence through Descope Inbound App
+        // SMART on FHIR launch sequence
         // The EHR will call this page with 'iss' and 'launch' parameters
         const urlParams = new URLSearchParams(window.location.search);
         const iss = urlParams.get("iss");
@@ -34,15 +34,23 @@
         if (!iss || !launch) {
             document.body.innerHTML = '<div style="padding: 20px; color: red;">Error: Missing required SMART launch parameters (iss and launch)</div>';
         } else {
-            // Store launch parameters for use after Descope authentication
-            sessionStorage.setItem('smart_iss', iss);
-            sessionStorage.setItem('smart_launch', launch);
+            console.log('SMART params:', { iss, launch });
 
-            console.log('Stored SMART params:', { iss, launch });
-            console.log('Redirecting to Descope authentication...');
+            // For demo purposes, use a public test client ID
+            // In production, you would register your own client
+            const clientId = 'my_web_app';
 
-            // Redirect to our authentication page with embedded Descope flow
-            window.location.href = '/auth.html';
+            FHIR.oauth2.authorize({
+                clientId: clientId,
+                scope: "patient/*.read openid fhirUser launch launch/patient",
+                redirectUri: window.location.origin + "/index.html",
+                iss: iss,
+                launch: launch,
+                pkceMode: "required"
+            }).catch(error => {
+                console.error('SMART OAuth error:', error);
+                document.body.innerHTML = '<div style="padding: 20px; color: red;">Failed to initiate SMART OAuth: ' + error.message + '</div>';
+            });
         }
     </script>
 </body>
