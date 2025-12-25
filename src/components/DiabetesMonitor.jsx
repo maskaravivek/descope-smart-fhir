@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import fhirClient from '../services/fhirClient';
+import FHIRService from '../services/fhirClient';
 import GlucoseChart from './GlucoseChart';
 import MedicationList from './MedicationList';
 import './DiabetesMonitor.css';
 
-function DiabetesMonitor() {
+function DiabetesMonitor({ fhirClient }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [patient, setPatient] = useState(null);
@@ -14,7 +14,7 @@ function DiabetesMonitor() {
 
   useEffect(() => {
     loadPatientData();
-  }, [useMockData]);
+  }, [fhirClient, useMockData]);
 
   const loadPatientData = async () => {
     setLoading(true);
@@ -28,7 +28,7 @@ function DiabetesMonitor() {
       }
     } catch (err) {
       console.error('Error loading patient data:', err);
-      setError('Unable to connect to FHIR server. Using mock data instead.');
+      setError('Unable to load FHIR data. Using mock data instead.');
       setUseMockData(true);
     } finally {
       setLoading(false);
@@ -36,13 +36,19 @@ function DiabetesMonitor() {
   };
 
   const loadFHIRData = async () => {
-    const client = await fhirClient.authorize();
-    const patientData = await fhirClient.getPatient();
+    if (!fhirClient) {
+      throw new Error('FHIR client not available');
+    }
+
+    // Initialize the service with the authenticated FHIR client
+    const fhirService = new FHIRService(fhirClient);
+
+    const patientData = await fhirService.getPatient();
     setPatient(patientData);
 
     if (patientData) {
-      const glucose = await fhirClient.getGlucoseObservations(patientData.id);
-      const meds = await fhirClient.getMedicationRequests(patientData.id);
+      const glucose = await fhirService.getGlucoseObservations(patientData.id);
+      const meds = await fhirService.getMedicationRequests(patientData.id);
 
       setGlucoseData(glucose);
       setMedications(meds);

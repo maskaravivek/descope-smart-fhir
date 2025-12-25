@@ -25,13 +25,25 @@
     </style>
 
     <script>
-        // SMART on FHIR launch sequence
-        FHIR.oauth2.authorize({
-            clientId: "your_client_id_here",
-            scope: "patient/*.read openid fhirUser launch launch/patient",
-            redirectUri: "./index.html",
-            iss: new URLSearchParams(window.location.search).get("iss")
-        });
+        // SMART on FHIR launch sequence through Descope Inbound App
+        // The EHR will call this page with 'iss' and 'launch' parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const iss = urlParams.get("iss");
+        const launch = urlParams.get("launch");
+
+        if (!iss || !launch) {
+            document.body.innerHTML = '<div style="padding: 20px; color: red;">Error: Missing required SMART launch parameters (iss and launch)</div>';
+        } else {
+            // Store launch parameters for use after Descope authentication
+            sessionStorage.setItem('smart_iss', iss);
+            sessionStorage.setItem('smart_launch', launch);
+
+            console.log('Stored SMART params:', { iss, launch });
+            console.log('Redirecting to Descope authentication...');
+
+            // Redirect to our authentication page with embedded Descope flow
+            window.location.href = '/auth.html';
+        }
     </script>
 </body>
 </html>

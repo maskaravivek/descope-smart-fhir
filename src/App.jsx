@@ -1,19 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import { useDescope, useSession, useUser } from '@descope/react-sdk';
-import { Descope } from '@descope/react-sdk';
+import FHIR from 'fhirclient';
 import DiabetesMonitor from './components/DiabetesMonitor';
 import './App.css';
 
 function App() {
-  const { isAuthenticated, isSessionLoading } = useSession();
-  const { user } = useUser();
-  const { logout } = useDescope();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [fhirClient, setFhirClient] = useState(null);
+  const [user, setUser] = useState(null);
 
-  const handleLogout = () => {
-    logout();
+  useEffect(() => {
+    initializeFHIRClient();
+  }, []);
+
+  const initializeFHIRClient = async () => {
+    try {
+      // Check if we're coming back from SMART OAuth flow
+      const client = await FHIR.oauth2.ready();
+
+      setFhirClient(client);
+
+      // Get patient info for display
+      const patient = await client.patient.read();
+      const patientName = getPatientName(patient);
+      setUser({ name: patientName, id: patient.id });
+
+      setLoading(false);
+    } catch (err) {
+      console.error('FHIR initialization error:', err);
+      setError('Unable to connect to FHIR server. Please start from your EHR system.');
+      setLoading(false);
+    }
   };
 
-  if (isSessionLoading) {
+  const getPatientName = (patient) => {
+    if (!patient.name || patient.name.length === 0) {
+      return 'Patient';
+    }
+    const name = patient.name[0];
+    const given = name.given ? name.given.join(' ') : '';
+    const family = name.family || '';
+    return `${given} ${family}`.trim() || 'Patient';
+  };
+
+  const handleLogout = () => {
+    // Clear FHIR session and redirect to launch page
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href = '/launch.html';
+  };
+
+  if (loading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
@@ -22,21 +59,32 @@ function App() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (error || !fhirClient) {
     return (
       <div className="app-container">
         <div className="login-container">
           <div className="login-card">
             <h1>Diabetes Monitoring</h1>
-            <p className="subtitle">
-              Access your glucose readings and medication data
+            <p className="subtitle" style={{ color: '#e53e3e' }}>
+              {error || 'Not connected to EHR system'}
             </p>
-            <div className="descope-wrapper">
-              <Descope
-                flowId={import.meta.env.VITE_DESCOPE_FLOW_ID || 'sign-up-or-in'}
-                theme="light"
-              />
-            </div>
+            <p style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
+              This app must be launched from your EHR system using SMART on FHIR.
+            </p>
+            <a
+              href="/launch.html?iss=https://launch.smarthealthit.org/v/r4/fhir&launch=test-launch"
+              style={{
+                marginTop: '20px',
+                display: 'inline-block',
+                padding: '10px 20px',
+                backgroundColor: '#667eea',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '6px'
+              }}
+            >
+              Test with SMART Launcher
+            </a>
           </div>
         </div>
       </div>
@@ -50,7 +98,7 @@ function App() {
           <h1>Diabetes Monitoring Dashboard</h1>
           <div className="user-section">
             <span className="welcome-text">
-              Welcome, {user?.name || user?.email || 'Patient'}
+              Welcome, {user?.name || 'Patient'}
             </span>
             <button onClick={handleLogout} className="logout-button">
               Logout
@@ -59,7 +107,7 @@ function App() {
         </div>
       </header>
       <main className="app-main">
-        <DiabetesMonitor />
+        <DiabetesMonitor fhirClient={fhirClient} />
       </main>
     </div>
   );

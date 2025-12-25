@@ -1,19 +1,6 @@
-import FHIR from 'fhirclient';
-
 class FHIRService {
-  constructor() {
-    this.client = null;
-  }
-
-  async authorize() {
-    try {
-      const client = await FHIR.oauth2.ready();
-      this.client = client;
-      return client;
-    } catch (error) {
-      console.error('FHIR authorization failed:', error);
-      throw error;
-    }
+  constructor(client) {
+    this.client = client;
   }
 
   async getGlucoseObservations(patientId) {
@@ -129,4 +116,4 @@ class FHIRService {
   }
 }
 
-export default new FHIRService();
+export default FHIRService;
