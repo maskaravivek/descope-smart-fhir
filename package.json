@@ -1,7 +1,7 @@
 {
-  "name": "smart-fhir-app",
+  "name": "diabetes-monitor-app",
   "version": "1.0.0",
-  "description": "Diabetes monitoring app using SMART on FHIR",
+  "description": "Diabetes monitoring dashboard with glucose tracking and medication management",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -10,8 +10,7 @@
   },
   "dependencies": {
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "fhirclient": "^2.5.2"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",

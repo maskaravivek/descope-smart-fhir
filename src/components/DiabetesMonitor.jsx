@@ -1,61 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import FHIRService from '../services/fhirClient';
 import GlucoseChart from './GlucoseChart';
 import MedicationList from './MedicationList';
 import './DiabetesMonitor.css';
 
-function DiabetesMonitor({ fhirClient }) {
+function DiabetesMonitor() {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [patient, setPatient] = useState(null);
   const [glucoseData, setGlucoseData] = useState([]);
   const [medications, setMedications] = useState([]);
-  const [useMockData, setUseMockData] = useState(false);
 
   useEffect(() => {
-    loadPatientData();
-  }, [fhirClient, useMockData]);
-
-  const loadPatientData = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      if (useMockData) {
-        loadMockData();
-      } else {
-        await loadFHIRData();
-      }
-    } catch (err) {
-      console.error('Error loading patient data:', err);
-      setError('Unable to load FHIR data. Using mock data instead.');
-      setUseMockData(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadFHIRData = async () => {
-    if (!fhirClient) {
-      throw new Error('FHIR client not available');
-    }
-
-    // Initialize the service with the authenticated FHIR client
-    const fhirService = new FHIRService(fhirClient);
-
-    const patientData = await fhirService.getPatient();
-    setPatient(patientData);
-
-    if (patientData) {
-      const glucose = await fhirService.getGlucoseObservations(patientData.id);
-      const meds = await fhirService.getMedicationRequests(patientData.id);
-
-      setGlucoseData(glucose);
-      setMedications(meds);
-    }
-  };
+    loadMockData();
+  }, []);
 
   const loadMockData = () => {
+    setLoading(true);
     setPatient({
       id: 'demo-patient-001',
       name: 'Demo Patient',
@@ -102,6 +61,7 @@ function DiabetesMonitor({ fhirClient }) {
 
     setGlucoseData(mockGlucose);
     setMedications(mockMedications);
+    setLoading(false);
   };
 
   const calculateStats = () => {
@@ -130,12 +90,6 @@ function DiabetesMonitor({ fhirClient }) {
 
   return (
     <div className="diabetes-monitor">
-      {error && (
-        <div className="alert alert-warning">
-          <p>{error}</p>
-        </div>
-      )}
-
       {patient && (
         <div className="patient-info">
           <h2>{patient.name}</h2>
@@ -177,12 +131,6 @@ function DiabetesMonitor({ fhirClient }) {
           <MedicationList medications={medications} />
         </div>
       </div>
-
-      {useMockData && (
-        <div className="mock-data-notice">
-          Using mock data for demonstration purposes
-        </div>
-      )}
     </div>
   );
 }

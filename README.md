@@ -1,13 +1,12 @@
-# Diabetes Monitoring App - SMART on FHIR
+# Diabetes Monitoring Dashboard
 
-A diabetes monitoring application using SMART on FHIR to access patient health records from EHR systems.
+A simple React application for monitoring diabetes health metrics, including glucose readings and medication tracking.
 
 ## Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
-- Access to a SMART on FHIR test server
 
 ### Setup
 
@@ -23,64 +22,41 @@ npm install
 npm run dev
 ```
 
-App runs at `http://localhost:3000`
+3. **Open in browser**
 
-## Testing
+Navigate to `http://localhost:5173`
 
-### Using SMART Health IT Launcher
+The app will display a demo patient dashboard with sample glucose readings and medications.
 
-1. Go to <https://launch.smarthealthit.org>
-2. Set **Launch URL**: `http://localhost:5173/launch.html`
-3. Set **Launch Type**: Patient Portal
-4. Select a patient and click **Launch**
-5. Approve SMART OAuth consent
-6. View patient dashboard
+## Features
 
-### Direct Test
-
-```bash
-http://localhost:5173/launch.html?iss=https://launch.smarthealthit.org/v/r4/fhir&launch=test-launch
-```
-
-## How It Works
-
-```mermaid
-sequenceDiagram
-    EHR->>App: Launch with SMART params
-    App->>SMART: Initiate OAuth
-    SMART->>App: Return access token
-    App->>FHIR: Fetch patient data
-```
-
-1. **SMART Launch** - EHR provides launch parameters
-2. **SMART OAuth** - User authorizes data access
-3. **Dashboard** - Display patient glucose and medication data
+- 📊 **Glucose Tracking** - Visual chart of blood glucose readings over time
+- 💊 **Medication List** - Active medications with dosage instructions
+- 📈 **Statistics** - Average, min, and max glucose values
+- 🎨 **Clean UI** - Modern, responsive design
 
 ## Project Structure
 
 ```
-├── public/
-│   └── launch.html     # SMART entry point
 ├── src/
-│   ├── components/     # React components
-│   ├── services/       # FHIR API client
-│   └── App.jsx         # Main app
+│   ├── components/
+│   │   ├── DiabetesMonitor.jsx    # Main dashboard component
+│   │   ├── GlucoseChart.jsx       # Glucose visualization
+│   │   └── MedicationList.jsx     # Medication display
+│   ├── services/
+│   │   └── fhirClient.js          # FHIR service (for future integration)
+│   └── App.jsx                     # Root component
 └── package.json
 ```
 
-## Key Features
+## Demo Data
 
-- ✅ SMART on FHIR integration
-- ✅ OAuth 2.0 with PKCE
-- ✅ Patient glucose observations
-- ✅ Active medications display
-- ✅ Mock data fallback for testing
+The app currently uses mock data for demonstration:
+- 10 days of glucose readings
+- 3 active medications
+- Sample patient information
 
-## Resources
-
-- [SMART on FHIR Specification](https://hl7.org/fhir/smart-app-launch/)
-- [FHIR R4 Documentation](https://hl7.org/fhir/R4/)
-- [SMART Health IT Launcher](https://launch.smarthealthit.org)
+This makes it easy to test and understand the UI before integrating with real data sources.
 
 ## License
 
