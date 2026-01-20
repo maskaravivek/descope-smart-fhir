@@ -24,7 +24,6 @@ Create a `.env` file:
 
 ```env
 VITE_DESCOPE_PROJECT_ID=your_project_id
-VITE_DESCOPE_FLOW_ID=sign-up-or-in
 VITE_FHIR_SERVER_URL=https://launch.smarthealthit.org/v/r4/fhir
 VITE_INBOUND_APPS_CLIENT_ID=your_client_id
 ```
