@@ -46,33 +46,22 @@
     </div>
 
     <script>
-        // Get SMART launch parameters from session storage
         const iss = sessionStorage.getItem('smart_iss');
         const launch = sessionStorage.getItem('smart_launch');
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
 
-        console.log('Auth page - SMART params:', { iss, launch });
+        const inboundAppClientId = 'UDM3QkVtUXgycExqSHdVNlRQRGVwbVFzZEd1bTpUUEEzN0xrVWVubWlZUzRtV0JWM1RXUHBqWUdpMWw=';
 
-        // Listen for successful authentication from Descope
-        const descopeWc = document.querySelector('descope-wc');
-
-        descopeWc.addEventListener('success', async (e) => {
-            console.log('Descope authentication successful!', e.detail);
-
-            // User is now authenticated with Descope
-            // Now proceed to SMART OAuth flow
+        async function startFHIROAuth() {
             if (!iss || !launch) {
                 alert('Missing SMART launch parameters. Please start from the EHR launch page.');
                 return;
             }
-
-            console.log('Proceeding to SMART OAuth flow...');
-
-            const inboundAppClientId = 'UDM3QkVtUXgycExqSHdVNlRQRGVwbVFzZEd1bTpUUEEzN0xrVWVubWlZUzRtV0JWM1RXUHBqWUdpMWw=';
-
             try {
                 await FHIR.oauth2.authorize({
                     clientId: inboundAppClientId,
-                    scope: "patient/*.read openid fhirUser launch launch/patient",
+                    scope: "patient/Observation.read patient/MedicationRequest.read openid fhirUser launch launch/patient",
                     redirectUri: window.location.origin + "/index.html",
                     iss: iss,
                     launch: launch,
@@ -82,11 +71,24 @@
                 console.error('SMART OAuth error:', error);
                 alert('Failed to initiate SMART OAuth: ' + error.message);
             }
-        });
+        }
 
-        descopeWc.addEventListener('error', (e) => {
-            console.error('Descope authentication error:', e.detail);
-        });
+        if (code) {
+            // Returning from Inbound App consent — user already authenticated
+            // via Descope hosted login, proceed directly to FHIR OAuth
+            console.log('Inbound App consent approved, proceeding to SMART OAuth...');
+            startFHIROAuth();
+        } else {
+            // No code present — show Descope WC for login (embedded fallback)
+            const descopeWc = document.querySelector('descope-wc');
+            descopeWc.addEventListener('success', async (e) => {
+                console.log('Descope authentication successful!', e.detail);
+                startFHIROAuth();
+            });
+            descopeWc.addEventListener('error', (e) => {
+                console.error('Descope authentication error:', e.detail);
+            });
+        }
     </script>
 </body>
 </html>

@@ -39,10 +39,16 @@
             sessionStorage.setItem('smart_launch', launch);
 
             console.log('Stored SMART params:', { iss, launch });
-            console.log('Redirecting to Descope authentication...');
+            console.log('Redirecting to Descope Inbound App authorization...');
 
-            // Redirect to our authentication page with embedded Descope flow
-            window.location.href = '/auth.html';
+            // Route through Inbound App's authorization endpoint so scope
+            // context is injected into the consent screen
+            const inboundAppClientId = 'UDM3QkVtUXgycExqSHdVNlRQRGVwbVFzZEd1bTpUUEEzN0xrVWVubWlZUzRtV0JWM1RXUHBqWUdpMWw=';
+            const scopes = 'patient/Observation.read patient/MedicationRequest.read openid launch';
+            const redirectUri = encodeURIComponent(window.location.origin + '/auth.html');
+            const scopeParam = encodeURIComponent(scopes);
+
+            window.location.href = `https://api.descope.com/oauth2/v1/apps/authorize?client_id=${inboundAppClientId}&response_type=code&scope=${scopeParam}&redirect_uri=${redirectUri}`;
         }
     </script>
 </body>
