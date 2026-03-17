@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMART Launch</title>
+    <script src="/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fhirclient@2.5.2/build/fhir-client.js"></script>
 </head>
 <body>
@@ -39,10 +40,25 @@
             sessionStorage.setItem('smart_launch', launch);
 
             console.log('Stored SMART params:', { iss, launch });
-            console.log('Redirecting to Descope authentication...');
+            console.log('Redirecting to Descope OAuth authorize...');
 
-            // Redirect to our authentication page with embedded Descope flow
-            window.location.href = '/auth.html';
+            // Get Descope configuration
+            const { clientId, scopes } = window.DESCOPE_CONFIG;
+            const redirectUri = window.location.origin + '/callback.html';
+
+            // Join scopes array into space-separated string
+            const scopeString = scopes.join(' ');
+
+            // Build Descope OAuth authorize URL (for Inbound Apps, use /apps/ path)
+            const authorizeUrl = new URL(`https://api.descope.com/oauth2/v1/apps/authorize`);
+            authorizeUrl.searchParams.set('client_id', clientId);
+            authorizeUrl.searchParams.set('redirect_uri', redirectUri);
+            authorizeUrl.searchParams.set('response_type', 'code');
+            authorizeUrl.searchParams.set('scope', scopeString);
+            authorizeUrl.searchParams.set('state', Math.random().toString(36).substring(7));
+
+            // Redirect to Descope Hosted Auth
+            window.location.href = authorizeUrl.toString();
         }
     </script>
 </body>
